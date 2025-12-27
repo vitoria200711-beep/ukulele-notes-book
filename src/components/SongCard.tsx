@@ -1,12 +1,18 @@
-import { Music, Trash2, Edit2 } from 'lucide-react';
+import { Music, Trash2, Edit2, Play } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+
+interface Note {
+  string: number;
+  fret: number;
+  finger?: string;
+}
 
 interface Song {
   id: string;
   title: string;
   artist?: string;
-  notes: unknown[];
+  notes: Note[];
   created_at: string;
 }
 
@@ -14,9 +20,10 @@ interface SongCardProps {
   song: Song;
   onEdit: (song: Song) => void;
   onDelete: (id: string) => void;
+  onPractice: (song: Song) => void;
 }
 
-export function SongCard({ song, onEdit, onDelete }: SongCardProps) {
+export function SongCard({ song, onEdit, onDelete, onPractice }: SongCardProps) {
   const notesCount = Array.isArray(song.notes) ? song.notes.length : 0;
 
   return (
@@ -44,6 +51,15 @@ export function SongCard({ song, onEdit, onDelete }: SongCardProps) {
           </span>
           
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onPractice(song)}
+              className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+              title="Praticar"
+            >
+              <Play className="w-4 h-4" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"
