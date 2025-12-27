@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { SongCard } from '@/components/SongCard';
 import { SongEditor } from '@/components/SongEditor';
+import { PracticeMode } from '@/components/PracticeMode';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, LogOut, Music, Search, Sun, Moon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,8 @@ export default function Index() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingSong, setEditingSong] = useState<Song | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
+  const [practiceOpen, setPracticeOpen] = useState(false);
+  const [practiceSong, setPracticeSong] = useState<Song | undefined>();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -148,6 +151,11 @@ export default function Index() {
     setEditorOpen(true);
   };
 
+  const handlePractice = (song: Song) => {
+    setPracticeSong(song);
+    setPracticeOpen(true);
+  };
+
   const filteredSongs = songs.filter(
     (song) =>
       song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -251,6 +259,7 @@ export default function Index() {
                 song={song}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onPractice={handlePractice}
               />
             ))}
           </div>
@@ -264,6 +273,16 @@ export default function Index() {
         song={editingSong}
         onSave={handleSave}
       />
+
+      {/* Practice Mode Modal */}
+      {practiceSong && (
+        <PracticeMode
+          open={practiceOpen}
+          onOpenChange={setPracticeOpen}
+          songTitle={practiceSong.title}
+          notes={practiceSong.notes}
+        />
+      )}
     </div>
   );
 }
