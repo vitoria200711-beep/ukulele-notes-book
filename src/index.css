@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 45 30% 96%;
+    --foreground: 25 30% 15%;
+
+    --card: 45 40% 98%;
+    --card-foreground: 25 30% 15%;
+
+    --popover: 45 40% 98%;
+    --popover-foreground: 25 30% 15%;
+
+    --primary: 25 80% 50%;
+    --primary-foreground: 45 40% 98%;
+
+    --secondary: 195 60% 50%;
+    --secondary-foreground: 45 40% 98%;
+
+    --muted: 45 20% 90%;
+    --muted-foreground: 25 15% 45%;
+
+    --accent: 340 70% 55%;
+    --accent-foreground: 45 40% 98%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 45 40% 98%;
+
+    --border: 45 20% 85%;
+    --input: 45 20% 85%;
+    --ring: 25 80% 50%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 25 30% 20%;
+    --sidebar-foreground: 45 30% 96%;
+    --sidebar-primary: 25 80% 50%;
+    --sidebar-primary-foreground: 45 40% 98%;
+    --sidebar-accent: 25 25% 30%;
+    --sidebar-accent-foreground: 45 30% 96%;
+    --sidebar-border: 25 20% 25%;
+    --sidebar-ring: 25 80% 50%;
+
+    --ukulele-wood: 30 50% 40%;
+    --ukulele-string: 45 20% 75%;
+    --ukulele-fret: 45 15% 55%;
+    --success: 145 65% 42%;
+  }
+
+  .dark {
+    --background: 25 25% 10%;
+    --foreground: 45 30% 96%;
+
+    --card: 25 20% 15%;
+    --card-foreground: 45 30% 96%;
+
+    --popover: 25 20% 15%;
+    --popover-foreground: 45 30% 96%;
+
+    --primary: 25 75% 55%;
+    --primary-foreground: 25 25% 10%;
+
+    --secondary: 195 55% 45%;
+    --secondary-foreground: 45 40% 98%;
+
+    --muted: 25 15% 20%;
+    --muted-foreground: 45 15% 65%;
+
+    --accent: 340 65% 50%;
+    --accent-foreground: 45 40% 98%;
+
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 45 40% 98%;
+
+    --border: 25 15% 25%;
+    --input: 25 15% 25%;
+    --ring: 25 75% 55%;
+
+    --sidebar-background: 25 30% 8%;
+    --sidebar-foreground: 45 30% 96%;
+    --sidebar-primary: 25 75% 55%;
+    --sidebar-primary-foreground: 25 25% 10%;
+    --sidebar-accent: 25 20% 18%;
+    --sidebar-accent-foreground: 45 30% 96%;
+    --sidebar-border: 25 15% 20%;
+    --sidebar-ring: 25 75% 55%;
+
+    --ukulele-wood: 30 45% 30%;
+    --ukulele-string: 45 15% 60%;
+    --ukulele-fret: 45 10% 40%;
+    --success: 145 60% 38%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .ukulele-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(30 60% 35%) 100%);
+  }
+
+  .string-shadow {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .note-glow {
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.4);
+  }
+}
