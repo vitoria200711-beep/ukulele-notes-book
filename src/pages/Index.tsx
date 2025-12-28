@@ -101,15 +101,51 @@ export default function Index() {
       const remoteCifraById = new Map<string, string | undefined>();
       typedSongs.forEach((s) => remoteCifraById.set(s.id, s.cifra));
 
-      const toSync = merged.filter((s) => !!s.cifra && !remoteCifraById.get(s.id));
+      // Evita re-tentar infinitamente no mesmo navegador
+      const triedKey = 'ukulele-cifra-sync-tried-v1';
+      let tried: Record<string, 1> = {};
+      try {
+        tried = JSON.parse(sessionStorage.getItem(triedKey) || '{}') as Record<string, 1>;
+      } catch {
+        tried = {};
+      }
+
+      const toSync = merged.filter((s) => !!s.cifra && !remoteCifraById.get(s.id) && !tried[s.id]);
       if (toSync.length > 0) {
-        // Não bloquear a tela; roda em background.
-        void Promise.allSettled(
-          toSync.map((s) =>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            supabase.from('songs').update({ cifra: s.cifra } as any).eq('id', s.id)
-          )
-        );
+        // Marca como tentado
+        toSync.forEach((s) => (tried[s.id] = 1));
+        try {
+          sessionStorage.setItem(triedKey, JSON.stringify(tried));
+        } catch {
+          // ignore
+        }
+
+        // Roda em background, mas com feedback (1 toast) se der certo/errado.
+        void (async () => {
+          const results = await Promise.allSettled(
+            toSync.map((s) =>
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              supabase.from('songs').update({ cifra: s.cifra } as any).eq('id', s.id)
+            )
+          );
+
+          const ok = results.filter((r) => r.status === 'fulfilled').length;
+          const fail = results.length - ok;
+
+          if (ok > 0) {
+            toast({
+              title: 'Sincronizado',
+              description: `Sincronizei ${ok} música(s) para aparecer no celular.`,
+            });
+          }
+          if (fail > 0) {
+            toast({
+              title: 'Atenção',
+              description: `Não consegui sincronizar ${fail} música(s). Verifique se você está logada no mesmo usuário no celular.`,
+              variant: 'destructive',
+            });
+          }
+        })();
       }
     } catch (error) {
       toast({
