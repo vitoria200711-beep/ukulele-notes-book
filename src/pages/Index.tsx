@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { SongView } from '@/components/SongView';
 import { mergeSongsWithCifra, setSongCifra } from '@/utils/songStorage';
 import { UkuleleTuner } from '@/components/UkuleleTuner';
+import { PwaInstallCard } from '@/components/PwaInstallCard';
 
 interface Note {
   string: number;
@@ -188,10 +189,10 @@ export default function Index() {
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 ukulele-gradient rounded-full flex items-center justify-center">
-              <Music className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
+              <img src="/ukulele-logo.svg" alt="Ukulele" className="w-7 h-7" />
             </div>
-            <h1 className="text-xl font-heading font-bold">Ukulele Notes</h1>
+            <h1 className="text-xl font-heading font-bold">Caderno de Ukulele</h1>
           </div>
           
           <div className="flex items-center gap-2">
@@ -217,6 +218,10 @@ export default function Index() {
 
       {/* Main content */}
       <main className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <PwaInstallCard />
+        </div>
+
         {/* Search and add */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">
