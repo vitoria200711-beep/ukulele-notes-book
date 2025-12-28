@@ -7,6 +7,7 @@ import { chordToPositions, parseCifraToSteps } from '@/utils/chordConverter';
 import { UkuleleNeck } from '@/components/UkuleleNeck';
 import { useAudioDetector } from '@/hooks/useAudioDetector';
 import { UkuleleType, getExpectedNote, getFrequencyForPosition, getNoteFromFrequency, isNoteMatch } from '@/lib/ukuleleConfig';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Note {
   string: number;
@@ -30,18 +31,47 @@ interface SongViewProps {
 }
 
 export function SongView({ open, onOpenChange, song }: SongViewProps) {
+  const [remoteCifra, setRemoteCifra] = useState<string | null>(null);
+
+  // Se abrir no celular e não vier cifra no objeto (cache/versão antiga ou sem merge),
+  // buscamos direto no Supabase pelo id. Isso garante sincronização entre dispositivos.
+  useEffect(() => {
+    if (!open) return;
+    setRemoteCifra(null);
+    if (song.cifra?.trim()) return;
+    if (!song.id) return;
+
+    void (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('songs')
+          .select('cifra')
+          .eq('id', song.id)
+          .maybeSingle();
+        if (error) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const c = ((data as any)?.cifra as string | null) || null;
+        if (c && c.trim()) setRemoteCifra(c);
+      } catch {
+        // ignore
+      }
+    })();
+  }, [open, song.id, song.cifra]);
+
+  const cifraText = (song.cifra?.trim() ? song.cifra : null) ?? remoteCifra ?? '';
+
   const steps = useMemo(() => {
-    if (song.cifra?.trim()) {
-      const parsed = parseCifraToSteps(song.cifra);
+    if (cifraText?.trim()) {
+      const parsed = parseCifraToSteps(cifraText);
       // Se por algum motivo não conseguir parsear, não “some” com a música: mostra o texto cru.
       if (!parsed || parsed.length === 0) {
-        return [{ chord: '—', lyric: song.cifra }];
+        return [{ chord: '—', lyric: cifraText }];
       }
       return parsed;
     }
     // Fallback: se não tem cifra completa, usa as notas “salvas”
     return [{ chord: 'C', lyric: 'Adicione a cifra completa para tocar a música inteira.' }];
-  }, [song.cifra]);
+  }, [cifraText]);
 
   const [idx, setIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
