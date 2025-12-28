@@ -31,7 +31,14 @@ interface SongViewProps {
 
 export function SongView({ open, onOpenChange, song }: SongViewProps) {
   const steps = useMemo(() => {
-    if (song.cifra?.trim()) return parseCifraToSteps(song.cifra);
+    if (song.cifra?.trim()) {
+      const parsed = parseCifraToSteps(song.cifra);
+      // Se por algum motivo não conseguir parsear, não “some” com a música: mostra o texto cru.
+      if (!parsed || parsed.length === 0) {
+        return [{ chord: '—', lyric: song.cifra }];
+      }
+      return parsed;
+    }
     // Fallback: se não tem cifra completa, usa as notas “salvas”
     return [{ chord: 'C', lyric: 'Adicione a cifra completa para tocar a música inteira.' }];
   }, [song.cifra]);
@@ -183,10 +190,16 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[100vw] max-w-[100vw] h-[100dvh] sm:max-w-[98vw] sm:h-[95vh] p-0 overflow-hidden">
-        <div className="h-full flex flex-col">
-          {/* Header (fixo) */}
-          <div className="px-4 py-3 sm:px-6 sm:py-4 border-b bg-background flex items-center justify-between gap-3 shrink-0">
+      <DialogContent
+        className="p-0 max-w-none w-screen h-[100dvh] flex flex-col overflow-hidden
+        left-0 top-0 right-0 bottom-0 translate-x-0 translate-y-0
+        sm:left-[50%] sm:top-[50%] sm:right-auto sm:bottom-auto sm:translate-x-[-50%] sm:translate-y-[-50%]
+        sm:w-full sm:max-w-[98vw] sm:h-[95vh]"
+      >
+        {/* Container de scroll único (funciona melhor em mobile/desktop) */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+          {/* Header (sticky dentro do container rolável) */}
+          <div className="sticky top-0 z-10 px-4 py-3 sm:px-6 sm:py-4 border-b bg-background/95 backdrop-blur flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-base sm:text-xl font-bold truncate">{song.title}</div>
               {song.artist && <div className="text-xs sm:text-sm text-muted-foreground truncate">{song.artist}</div>}
@@ -197,12 +210,10 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
             </div>
           </div>
 
-          {/* Body (uma única rolagem — melhor no celular) */}
-          <div className="flex-1 overflow-y-auto [-webkit-overflow-scrolling:touch] overscroll-contain">
-            <div className="flex flex-col lg:grid lg:grid-cols-12">
+          <div className="flex flex-col lg:grid lg:grid-cols-12">
               {/* Painel do acorde (mobile: topo / desktop: direita) */}
               <div className="order-1 lg:order-2 lg:col-span-5 border-b lg:border-b-0 lg:border-l">
-                <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 lg:sticky lg:top-0">
+                <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 lg:sticky lg:top-20">
               <Card className="border-2 border-primary/30">
                 <CardContent className="p-3 sm:p-4 text-center">
                   <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Acorde atual</div>
@@ -389,7 +400,6 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
                   })}
                 </div>
               </div>
-            </div>
           </div>
         </div>
       </DialogContent>
