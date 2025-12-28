@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Mic, MicOff, Pause, Play, RotateCcw, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import { ArrowLeft, Mic, MicOff, Pause, Play, RotateCcw, SkipBack, SkipForward, Volume2 } from 'lucide-react';
 import { chordToPositions, parseCifraToSteps } from '@/utils/chordConverter';
 import { UkuleleNeck } from '@/components/UkuleleNeck';
 import { useAudioDetector } from '@/hooks/useAudioDetector';
@@ -200,9 +200,20 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
           {/* Header (sticky dentro do container rolável) */}
           <div className="sticky top-0 z-10 px-4 py-3 sm:px-6 sm:py-4 border-b bg-background/95 backdrop-blur flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-base sm:text-xl font-bold truncate">{song.title}</div>
-              {song.artist && <div className="text-xs sm:text-sm text-muted-foreground truncate">{song.artist}</div>}
+            <div className="flex items-center gap-2 min-w-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                className="shrink-0"
+                title="Voltar"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div className="min-w-0">
+                <div className="text-base sm:text-xl font-bold truncate">{song.title}</div>
+                {song.artist && <div className="text-xs sm:text-sm text-muted-foreground truncate">{song.artist}</div>}
+              </div>
             </div>
             <div className="shrink-0 text-right">
               <div className="text-[10px] sm:text-xs text-muted-foreground uppercase">Progresso</div>

@@ -115,7 +115,24 @@ export default function Index() {
           .eq('id', songData.id);
 
         if (error) throw error;
-        if (songData.cifra) setSongCifra(songData.id, songData.cifra);
+        if (songData.cifra) {
+          // Salvar localmente e também manter no state, para aparecer na hora no celular.
+          try { setSongCifra(songData.id, songData.cifra); } catch { /* ignore */ }
+        }
+
+        setSongs((prev) =>
+          prev.map((s) =>
+            s.id === songData.id
+              ? {
+                  ...s,
+                  title: songData.title,
+                  artist: songData.artist,
+                  notes: songData.notes,
+                  cifra: songData.cifra || s.cifra,
+                }
+              : s
+          )
+        );
 
         toast({ title: 'Música atualizada!' });
       } else {
@@ -131,7 +148,25 @@ export default function Index() {
           .single();
 
         if (error) throw error;
-        if (data?.id && songData.cifra) setSongCifra(data.id, songData.cifra);
+        if (data?.id && songData.cifra) {
+          try { setSongCifra(data.id, songData.cifra); } catch { /* ignore */ }
+        }
+
+        // Atualiza a UI imediatamente (importante no celular)
+        if (data?.id) {
+          const now = new Date().toISOString();
+          setSongs((prev) => [
+            {
+              id: data.id,
+              title: songData.title,
+              artist: songData.artist,
+              notes: songData.notes,
+              created_at: now,
+              cifra: songData.cifra,
+            },
+            ...prev,
+          ]);
+        }
 
         toast({ title: 'Música adicionada!' });
       }
