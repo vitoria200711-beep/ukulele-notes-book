@@ -184,23 +184,25 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[100vw] max-w-[100vw] h-[100dvh] sm:max-w-[98vw] sm:h-[95vh] p-0 overflow-hidden">
-        {/* Header */}
-        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b bg-background flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-base sm:text-xl font-bold truncate">{song.title}</div>
-            {song.artist && <div className="text-xs sm:text-sm text-muted-foreground truncate">{song.artist}</div>}
+        <div className="h-full flex flex-col">
+          {/* Header (fixo) */}
+          <div className="px-4 py-3 sm:px-6 sm:py-4 border-b bg-background flex items-center justify-between gap-3 shrink-0">
+            <div className="min-w-0">
+              <div className="text-base sm:text-xl font-bold truncate">{song.title}</div>
+              {song.artist && <div className="text-xs sm:text-sm text-muted-foreground truncate">{song.artist}</div>}
+            </div>
+            <div className="shrink-0 text-right">
+              <div className="text-[10px] sm:text-xs text-muted-foreground uppercase">Progresso</div>
+              <div className="text-base sm:text-lg font-bold">{progress}%</div>
+            </div>
           </div>
-          <div className="shrink-0 text-right">
-            <div className="text-[10px] sm:text-xs text-muted-foreground uppercase">Progresso</div>
-            <div className="text-base sm:text-lg font-bold">{progress}%</div>
-          </div>
-        </div>
 
-        {/* Body */}
-        <div className="h-[calc(100dvh-56px)] sm:h-[calc(95vh-76px)] overflow-hidden lg:grid lg:grid-cols-12">
-          {/* Painel do acorde (mobile: topo / desktop: direita) */}
-          <div className="order-1 lg:order-2 lg:col-span-5 border-b lg:border-b-0 lg:border-l overflow-y-auto">
-            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          {/* Body (uma única rolagem — melhor no celular) */}
+          <div className="flex-1 overflow-y-auto [-webkit-overflow-scrolling:touch] overscroll-contain">
+            <div className="flex flex-col lg:grid lg:grid-cols-12">
+              {/* Painel do acorde (mobile: topo / desktop: direita) */}
+              <div className="order-1 lg:order-2 lg:col-span-5 border-b lg:border-b-0 lg:border-l">
+                <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 lg:sticky lg:top-0">
               <Card className="border-2 border-primary/30">
                 <CardContent className="p-3 sm:p-4 text-center">
                   <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Acorde atual</div>
@@ -358,33 +360,35 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* Texto da música inteira (mobile: embaixo / desktop: esquerda) */}
-          <div className="order-2 lg:order-1 lg:col-span-7 overflow-y-auto p-4 sm:p-6 lg:border-r" ref={listRef}>
-            <div className="max-w-3xl mx-auto space-y-3">
-              {steps.map((s, i) => {
-                const isCurrent = i === idx;
-                const isPast = i < idx;
-                return (
-                  <button
-                    key={i}
-                    data-step={i}
-                    onClick={() => setIdx(i)}
-                    className={`w-full text-left p-3 sm:p-4 rounded-xl border-2 transition-all ${
-                      isCurrent
-                        ? 'border-primary bg-primary/10'
-                        : isPast
-                        ? 'border-border/40 opacity-60 hover:opacity-80'
-                        : 'border-border hover:border-primary/40'
-                    }`}
-                  >
-                    <div className="text-base sm:text-lg font-extrabold text-primary">{s.chord}</div>
-                    <div className="text-sm sm:text-base text-foreground whitespace-pre-wrap">{s.lyric || ' '}</div>
-                  </button>
-                );
-              })}
+              {/* Texto da música inteira (mobile: embaixo / desktop: esquerda) */}
+              <div className="order-2 lg:order-1 lg:col-span-7 p-4 sm:p-6 lg:border-r" ref={listRef}>
+                <div className="max-w-3xl mx-auto space-y-3 pb-24">
+                  {steps.map((s, i) => {
+                    const isCurrent = i === idx;
+                    const isPast = i < idx;
+                    return (
+                      <button
+                        key={i}
+                        data-step={i}
+                        onClick={() => setIdx(i)}
+                        className={`w-full text-left p-3 sm:p-4 rounded-xl border-2 transition-all ${
+                          isCurrent
+                            ? 'border-primary bg-primary/10'
+                            : isPast
+                            ? 'border-border/40 opacity-60 hover:opacity-80'
+                            : 'border-border hover:border-primary/40'
+                        }`}
+                      >
+                        <div className="text-base sm:text-lg font-extrabold text-primary">{s.chord}</div>
+                        <div className="text-sm sm:text-base text-foreground whitespace-pre-wrap">{s.lyric || ' '}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
