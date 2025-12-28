@@ -90,7 +90,7 @@ export default function Index() {
         created_at: song.created_at,
       }));
 
-      setSongs(mergeSongsWithCifra(typedSongs));
+      setSongs(await mergeSongsWithCifra(typedSongs));
     } catch (error) {
       toast({
         title: 'Erro',
@@ -117,7 +117,7 @@ export default function Index() {
         if (error) throw error;
         if (songData.cifra) {
           // Salvar localmente e também manter no state, para aparecer na hora no celular.
-          try { setSongCifra(songData.id, songData.cifra); } catch { /* ignore */ }
+          try { await setSongCifra(songData.id, songData.cifra); } catch { /* ignore */ }
         }
 
         setSongs((prev) =>
@@ -149,7 +149,7 @@ export default function Index() {
 
         if (error) throw error;
         if (data?.id && songData.cifra) {
-          try { setSongCifra(data.id, songData.cifra); } catch { /* ignore */ }
+          try { await setSongCifra(data.id, songData.cifra); } catch { /* ignore */ }
         }
 
         // Atualiza a UI imediatamente (importante no celular)
