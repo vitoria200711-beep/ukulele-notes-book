@@ -37,60 +37,62 @@ export function UkuleleNeck({ positions, frets = 7 }: UkuleleNeckProps) {
   positions.forEach((p) => map.set(`${p.string}-${p.fret}`, p));
 
   return (
-    <div className="w-full rounded-2xl border-2 border-border bg-gradient-to-b from-amber-50 to-orange-100 dark:from-amber-950/20 dark:to-orange-950/20 p-4 shadow-lg">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-amber-900/90 dark:bg-amber-200/20 border border-amber-950/30" />
-        <div className="flex-1">
-          <div className="h-3 rounded-full bg-amber-900/80 dark:bg-amber-100/30" />
+    <div className="w-full overflow-x-auto">
+      <div className="min-w-[520px] w-full rounded-2xl border-2 border-border bg-gradient-to-b from-amber-50 to-orange-100 dark:from-amber-950/20 dark:to-orange-950/20 p-3 sm:p-4 shadow-lg">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-900/90 dark:bg-amber-200/20 border border-amber-950/30" />
+          <div className="flex-1">
+            <div className="h-3 rounded-full bg-amber-900/80 dark:bg-amber-100/30" />
+          </div>
         </div>
-      </div>
 
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-10" />
-        <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${frets}, minmax(0, 1fr))` }}>
-          {visibleFrets.map((f) => (
-            <div key={f} className="text-center text-xs font-semibold text-muted-foreground">
-              {f}
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-8 sm:w-10" />
+          <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${frets}, minmax(0, 1fr))` }}>
+            {visibleFrets.map((f) => (
+              <div key={f} className="text-center text-[10px] sm:text-xs font-semibold text-muted-foreground">
+                {f}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border-2 border-amber-900/30 dark:border-amber-200/20 bg-[linear-gradient(180deg,rgba(120,53,15,0.22),rgba(120,53,15,0.10))] p-3 sm:p-4">
+          {strings.map((s) => (
+            <div key={s.label} className="flex items-center gap-3 py-2 sm:py-3">
+              <div className="w-8 sm:w-10 text-sm font-bold text-amber-900 dark:text-amber-100">{s.label}</div>
+
+              <div className="flex-1 grid gap-2" style={{ gridTemplateColumns: `repeat(${frets}, minmax(0, 1fr))` }}>
+                {visibleFrets.map((fret) => {
+                  const p = map.get(`${s.idx}-${fret}`);
+                  return (
+                    <div
+                      key={`${s.idx}-${fret}`}
+                      className="relative h-9 sm:h-10 rounded-lg border border-amber-900/20 dark:border-amber-200/10 bg-white/40 dark:bg-black/20 overflow-hidden"
+                    >
+                      <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-amber-900/25 dark:bg-amber-100/15" />
+                      {p && (
+                        <div
+                          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-lg flex items-center justify-center text-sm font-extrabold ${fingerColor(
+                            p.finger
+                          )}`}
+                        >
+                          {p.finger || ''}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ))}
-        </div>
-      </div>
 
-      <div className="rounded-2xl border-2 border-amber-900/30 dark:border-amber-200/20 bg-[linear-gradient(180deg,rgba(120,53,15,0.22),rgba(120,53,15,0.10))] p-4">
-        {strings.map((s) => (
-          <div key={s.label} className="flex items-center gap-3 py-3">
-            <div className="w-10 text-sm font-bold text-amber-900 dark:text-amber-100">{s.label}</div>
-
-            <div className="flex-1 grid gap-2" style={{ gridTemplateColumns: `repeat(${frets}, minmax(0, 1fr))` }}>
-              {visibleFrets.map((fret) => {
-                const p = map.get(`${s.idx}-${fret}`);
-                return (
-                  <div
-                    key={`${s.idx}-${fret}`}
-                    className="relative h-10 rounded-lg border border-amber-900/20 dark:border-amber-200/10 bg-white/40 dark:bg-black/20 overflow-hidden"
-                  >
-                    <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-amber-900/25 dark:bg-amber-100/15" />
-                    {p && (
-                      <div
-                        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full shadow-lg flex items-center justify-center text-sm font-extrabold ${fingerColor(
-                          p.finger
-                        )}`}
-                      >
-                        {p.finger || ''}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          {startFret > 1 && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              Janela de trastes: {startFret}–{startFret + frets - 1}
             </div>
-          </div>
-        ))}
-
-        {startFret > 1 && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            Janela de trastes: {startFret}–{startFret + frets - 1}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

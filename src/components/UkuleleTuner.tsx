@@ -106,7 +106,7 @@ export function UkuleleTuner({ open, onOpenChange }: UkuleleTunerProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="w-[95vw] max-w-xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Music className="w-5 h-5" />

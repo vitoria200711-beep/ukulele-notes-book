@@ -122,7 +122,7 @@ export function PracticeMode({ open, onOpenChange, songTitle, notes }: PracticeM
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Music className="w-5 h-5" />

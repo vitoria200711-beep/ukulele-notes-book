@@ -43,6 +43,23 @@ export default function Index() {
   const [viewOpen, setViewOpen] = useState(false);
   const [viewSong, setViewSong] = useState<Song | undefined>();
   const [tunerOpen, setTunerOpen] = useState(false);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem('ukulele-pwa-install-seen') === '1';
+      if (!seen) {
+        // Mostrar apenas na primeira abertura
+        setShowInstallHelp(true);
+        localStorage.setItem('ukulele-pwa-install-seen', '1');
+      } else {
+        setShowInstallHelp(false);
+      }
+    } catch {
+      // Se localStorage falhar, não força aparecer toda vez
+      setShowInstallHelp(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -218,9 +235,15 @@ export default function Index() {
 
       {/* Main content */}
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <PwaInstallCard />
-        </div>
+        {showInstallHelp && (
+          <div className="mb-6">
+            <PwaInstallCard
+              onDismiss={() => {
+                setShowInstallHelp(false);
+              }}
+            />
+          </div>
+        )}
 
         {/* Search and add */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">

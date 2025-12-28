@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { X } from 'lucide-react';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -17,7 +18,7 @@ function isStandaloneMode() {
   );
 }
 
-export function PwaInstallCard() {
+export function PwaInstallCard({ onDismiss }: { onDismiss?: () => void }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
 
@@ -32,6 +33,7 @@ export function PwaInstallCard() {
     const onInstalled = () => {
       setInstalled(true);
       setDeferred(null);
+      onDismiss?.();
     };
 
     window.addEventListener('beforeinstallprompt', onBip as EventListener);
@@ -51,6 +53,7 @@ export function PwaInstallCard() {
       const choice = await deferred.userChoice;
       if (choice.outcome === 'accepted') {
         setInstalled(true);
+        onDismiss?.();
       }
     } finally {
       setDeferred(null);
@@ -66,6 +69,13 @@ export function PwaInstallCard() {
           </div>
 
           <div className="flex-1 space-y-2">
+            {onDismiss && (
+              <div className="flex justify-end -mt-1">
+                <Button variant="ghost" size="icon" onClick={onDismiss} className="h-8 w-8">
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
             <div className="font-bold text-lg leading-tight">Instalar como app (recomendado)</div>
             <div className="text-sm text-muted-foreground">
               Assim você usa offline, fica mais rápido e aparece como um app no seu celular/PC.

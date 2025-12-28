@@ -183,25 +183,186 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[98vw] w-full h-[95vh] p-0 overflow-hidden">
+      <DialogContent className="w-[100vw] max-w-[100vw] h-[100dvh] sm:max-w-[98vw] sm:h-[95vh] p-0 overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b bg-background flex items-center justify-between">
-          <div>
-            <div className="text-xl font-bold">{song.title}</div>
-            {song.artist && <div className="text-sm text-muted-foreground">{song.artist}</div>}
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b bg-background flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-base sm:text-xl font-bold truncate">{song.title}</div>
+            {song.artist && <div className="text-xs sm:text-sm text-muted-foreground truncate">{song.artist}</div>}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground uppercase">Progresso</div>
-              <div className="text-lg font-bold">{progress}%</div>
-            </div>
+          <div className="shrink-0 text-right">
+            <div className="text-[10px] sm:text-xs text-muted-foreground uppercase">Progresso</div>
+            <div className="text-base sm:text-lg font-bold">{progress}%</div>
           </div>
         </div>
 
         {/* Body */}
-        <div className="grid grid-cols-12 h-[calc(95vh-76px)]">
-          {/* Texto da música inteira */}
-          <div className="col-span-7 overflow-y-auto p-6 border-r" ref={listRef}>
+        <div className="h-[calc(100dvh-56px)] sm:h-[calc(95vh-76px)] overflow-hidden lg:grid lg:grid-cols-12">
+          {/* Painel do acorde (mobile: topo / desktop: direita) */}
+          <div className="order-1 lg:order-2 lg:col-span-5 border-b lg:border-b-0 lg:border-l overflow-y-auto">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+              <Card className="border-2 border-primary/30">
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Acorde atual</div>
+                  <div className="text-4xl sm:text-6xl font-black text-primary">{currentChord}</div>
+                </CardContent>
+              </Card>
+
+              <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+                <UkuleleNeck positions={positions} />
+              </div>
+
+              {/* Praticar enquanto vê a cifra (microfone) */}
+              <Card className="border-2 border-primary/20">
+                <CardContent className="p-3 sm:p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold">Praticar com microfone</div>
+                      <div className="text-xs text-muted-foreground">
+                        Toque <strong>uma corda por vez</strong> do acorde atual e veja se acertou.
+                      </div>
+                    </div>
+                    <Button
+                      variant={practiceOn ? 'outline' : 'default'}
+                      onClick={() => setPracticeOn((p) => !p)}
+                      className="shrink-0"
+                    >
+                      {practiceOn ? 'Desligar' : 'Ligar'}
+                    </Button>
+                  </div>
+
+                  {practiceOn && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-semibold text-muted-foreground">
+                          Ukulele: <span className="text-foreground">GCEA</span>
+                        </div>
+
+                        <Button
+                          onClick={isListening ? stopListening : startListeningForChord}
+                          variant={isListening ? 'destructive' : 'default'}
+                          className="ml-auto"
+                        >
+                          {isListening ? (
+                            <>
+                              <MicOff className="w-4 h-4 mr-2" />
+                              Parar
+                            </>
+                          ) : (
+                            <>
+                              <Mic className="w-4 h-4 mr-2" />
+                              Iniciar
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      {error && (
+                        <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+                          {error}
+                        </div>
+                      )}
+
+                      {isListening && (
+                        <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                          <Volume2 className="w-5 h-5 text-muted-foreground" />
+                          <div className="flex-1">
+                            <div className="h-2 bg-background rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary transition-all duration-100"
+                                style={{ width: `${Math.min(volume * 500, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="min-w-[80px] text-right">
+                            {detectedNote ? (
+                              <span className="font-mono font-bold">
+                                {detectedNote.note}
+                                {detectedNote.octave}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        {positions.map((p) => {
+                          const key = `${p.string}-${p.fret}`;
+                          const st = noteStatuses[key] || 'waiting';
+                          const expectedLabel = getExpectedNote(
+                            ukuleleType,
+                            appStringToConfigString(p.string),
+                            p.fret
+                          );
+                          const stringLabel = p.string === 3 ? 'G' : p.string === 2 ? 'C' : p.string === 1 ? 'E' : 'A';
+                          return (
+                            <div key={key} className="flex items-center justify-between gap-2 border rounded-lg p-2 bg-background">
+                              <div className="text-sm">
+                                <span className="font-bold">{stringLabel}</span>
+                                <span className="text-muted-foreground"> · traste {p.fret}</span>
+                                <span className="text-muted-foreground"> · esperado </span>
+                                <span className="font-mono font-semibold">{expectedLabel}</span>
+                              </div>
+                              <div className={`px-2 py-1 rounded-md text-xs font-bold ${statusBadge(st)}`}>
+                                {st === 'waiting' ? 'Aguardando' : st === 'correct' ? 'Certo' : st === 'close' ? 'Quase' : 'Errado'}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-3 sm:p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs text-muted-foreground uppercase">Velocidade</div>
+                    <select
+                      value={speedMs}
+                      onChange={(e) => setSpeedMs(Number(e.target.value))}
+                      className="border rounded-lg px-3 py-1 bg-background"
+                    >
+                      <option value={2500}>Rápido (2,5s)</option>
+                      <option value={3500}>Normal (3,5s)</option>
+                      <option value={5000}>Devagar (5s)</option>
+                      <option value={7000}>Muito devagar (7s)</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2">
+                    <Button variant="outline" size="icon" onClick={() => { setIdx(0); setIsPlaying(false); }}>
+                      <RotateCcw className="w-5 h-5" />
+                    </Button>
+                    <Button variant="outline" size="icon" disabled={idx === 0} onClick={() => setIdx((p) => Math.max(0, p - 1))}>
+                      <SkipBack className="w-5 h-5" />
+                    </Button>
+                    <Button onClick={() => setIsPlaying((p) => !p)} className="px-6">
+                      {isPlaying ? <><Pause className="w-5 h-5 mr-2" />Pausar</> : <><Play className="w-5 h-5 mr-2" />Auto</>}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      disabled={idx >= steps.length - 1}
+                      onClick={() => setIdx((p) => Math.min(steps.length - 1, p + 1))}
+                    >
+                      <SkipForward className="w-5 h-5" />
+                    </Button>
+                  </div>
+
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Texto da música inteira (mobile: embaixo / desktop: esquerda) */}
+          <div className="order-2 lg:order-1 lg:col-span-7 overflow-y-auto p-4 sm:p-6 lg:border-r" ref={listRef}>
             <div className="max-w-3xl mx-auto space-y-3">
               {steps.map((s, i) => {
                 const isCurrent = i === idx;
@@ -211,7 +372,7 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
                     key={i}
                     data-step={i}
                     onClick={() => setIdx(i)}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                    className={`w-full text-left p-3 sm:p-4 rounded-xl border-2 transition-all ${
                       isCurrent
                         ? 'border-primary bg-primary/10'
                         : isPast
@@ -219,170 +380,12 @@ export function SongView({ open, onOpenChange, song }: SongViewProps) {
                         : 'border-border hover:border-primary/40'
                     }`}
                   >
-                    <div className="text-lg font-extrabold text-primary">{s.chord}</div>
-                    <div className="text-base text-foreground whitespace-pre-wrap">{s.lyric || ' '}</div>
+                    <div className="text-base sm:text-lg font-extrabold text-primary">{s.chord}</div>
+                    <div className="text-sm sm:text-base text-foreground whitespace-pre-wrap">{s.lyric || ' '}</div>
                   </button>
                 );
               })}
             </div>
-          </div>
-
-          {/* Ukulele + controles */}
-          <div className="col-span-5 overflow-y-auto p-6 space-y-4">
-            <Card className="border-2 border-primary/30">
-              <CardContent className="p-4 text-center">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Acorde atual</div>
-                <div className="text-6xl font-black text-primary">{currentChord}</div>
-              </CardContent>
-            </Card>
-
-            <UkuleleNeck positions={positions} />
-
-            {/* Praticar enquanto vê a cifra (microfone) */}
-            <Card className="border-2 border-primary/20">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <div className="font-bold">Praticar com microfone</div>
-                    <div className="text-xs text-muted-foreground">
-                      Toque <strong>uma corda por vez</strong> do acorde atual e veja se acertou.
-                    </div>
-                  </div>
-                  <Button
-                    variant={practiceOn ? 'outline' : 'default'}
-                    onClick={() => setPracticeOn((p) => !p)}
-                  >
-                    {practiceOn ? 'Desligar' : 'Ligar'}
-                  </Button>
-                </div>
-
-                {practiceOn && (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <div className="text-sm font-semibold text-muted-foreground">
-                        Ukulele: <span className="text-foreground">GCEA</span>
-                      </div>
-
-                      <Button
-                        onClick={isListening ? stopListening : startListeningForChord}
-                        variant={isListening ? 'destructive' : 'default'}
-                        className="ml-auto"
-                      >
-                        {isListening ? (
-                          <>
-                            <MicOff className="w-4 h-4 mr-2" />
-                            Parar
-                          </>
-                        ) : (
-                          <>
-                            <Mic className="w-4 h-4 mr-2" />
-                            Iniciar
-                          </>
-                        )}
-                      </Button>
-                    </div>
-
-                    {error && (
-                      <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-                        {error}
-                      </div>
-                    )}
-
-                    {isListening && (
-                      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                        <Volume2 className="w-5 h-5 text-muted-foreground" />
-                        <div className="flex-1">
-                          <div className="h-2 bg-background rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary transition-all duration-100"
-                              style={{ width: `${Math.min(volume * 500, 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                        <div className="min-w-[96px] text-right">
-                          {detectedNote ? (
-                            <span className="font-mono font-bold">
-                              {detectedNote.note}
-                              {detectedNote.octave}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      {positions.map((p) => {
-                        const key = `${p.string}-${p.fret}`;
-                        const st = noteStatuses[key] || 'waiting';
-                        const expectedLabel = getExpectedNote(
-                          ukuleleType,
-                          appStringToConfigString(p.string),
-                          p.fret
-                        );
-                        const stringLabel = p.string === 3 ? 'G' : p.string === 2 ? 'C' : p.string === 1 ? 'E' : 'A';
-                        return (
-                          <div key={key} className="flex items-center justify-between gap-2 border rounded-lg p-2 bg-background">
-                            <div className="text-sm">
-                              <span className="font-bold">{stringLabel}</span>
-                              <span className="text-muted-foreground"> · traste {p.fret}</span>
-                              <span className="text-muted-foreground"> · esperado </span>
-                              <span className="font-mono font-semibold">{expectedLabel}</span>
-                            </div>
-                            <div className={`px-2 py-1 rounded-md text-xs font-bold ${statusBadge(st)}`}>
-                              {st === 'waiting' ? 'Aguardando' : st === 'correct' ? 'Certo' : st === 'close' ? 'Quase' : 'Errado'}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="text-xs text-muted-foreground uppercase">Velocidade</div>
-                  <select
-                    value={speedMs}
-                    onChange={(e) => setSpeedMs(Number(e.target.value))}
-                    className="border rounded-lg px-3 py-1 bg-background"
-                  >
-                    <option value={2500}>Rápido (2,5s)</option>
-                    <option value={3500}>Normal (3,5s)</option>
-                    <option value={5000}>Devagar (5s)</option>
-                    <option value={7000}>Muito devagar (7s)</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => { setIdx(0); setIsPlaying(false); }}>
-                    <RotateCcw className="w-5 h-5" />
-                  </Button>
-                  <Button variant="outline" size="icon" disabled={idx === 0} onClick={() => setIdx((p) => Math.max(0, p - 1))}>
-                    <SkipBack className="w-5 h-5" />
-                  </Button>
-                  <Button onClick={() => setIsPlaying((p) => !p)} className="px-6">
-                    {isPlaying ? <><Pause className="w-5 h-5 mr-2" />Pausar</> : <><Play className="w-5 h-5 mr-2" />Auto</>}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    disabled={idx >= steps.length - 1}
-                    onClick={() => setIdx((p) => Math.min(steps.length - 1, p + 1))}
-                  >
-                    <SkipForward className="w-5 h-5" />
-                  </Button>
-                </div>
-
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </DialogContent>
