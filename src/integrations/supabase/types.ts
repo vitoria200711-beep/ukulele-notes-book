@@ -41,6 +41,7 @@ export type Database = {
       songs: {
         Row: {
           artist: string | null
+          cifra: string | null
           created_at: string
           id: string
           notes: Json
@@ -50,6 +51,7 @@ export type Database = {
         }
         Insert: {
           artist?: string | null
+          cifra?: string | null
           created_at?: string
           id?: string
           notes?: Json
@@ -59,6 +61,7 @@ export type Database = {
         }
         Update: {
           artist?: string | null
+          cifra?: string | null
           created_at?: string
           id?: string
           notes?: Json

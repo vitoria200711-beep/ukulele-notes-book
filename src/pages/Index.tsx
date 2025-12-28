@@ -88,9 +88,29 @@ export default function Index() {
         artist: song.artist || undefined,
         notes: Array.isArray(song.notes) ? (song.notes as unknown as Note[]) : [],
         created_at: song.created_at,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        cifra: ((song as any).cifra as string | null) || undefined,
       }));
 
-      setSongs(await mergeSongsWithCifra(typedSongs));
+      // Mescla com cifra local (IndexedDB/localStorage)
+      const merged = await mergeSongsWithCifra(typedSongs);
+      setSongs(merged);
+
+      // Se a música tiver cifra local mas o Supabase ainda estiver sem cifra,
+      // sincroniza automaticamente (isso resolve PC -> celular).
+      const remoteCifraById = new Map<string, string | undefined>();
+      typedSongs.forEach((s) => remoteCifraById.set(s.id, s.cifra));
+
+      const toSync = merged.filter((s) => !!s.cifra && !remoteCifraById.get(s.id));
+      if (toSync.length > 0) {
+        // Não bloquear a tela; roda em background.
+        void Promise.allSettled(
+          toSync.map((s) =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            supabase.from('songs').update({ cifra: s.cifra } as any).eq('id', s.id)
+          )
+        );
+      }
     } catch (error) {
       toast({
         title: 'Erro',
@@ -105,16 +125,43 @@ export default function Index() {
   const handleSave = async (songData: { id?: string; title: string; artist?: string; notes: Note[]; cifra?: string }) => {
     try {
       if (songData.id) {
-        const { error } = await supabase
-          .from('songs')
-          .update({
-            title: songData.title,
-            artist: songData.artist,
-            notes: songData.notes as unknown as never,
-          })
-          .eq('id', songData.id);
+        // Tenta salvar cifra também (para sincronizar no celular).
+        // Se a coluna ainda não existir no Supabase, fazemos fallback sem quebrar o app.
+        let updateError: any = null;
+        try {
+          const { error } = await supabase
+            .from('songs')
+            .update({
+              title: songData.title,
+              artist: songData.artist,
+              notes: songData.notes as unknown as never,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              cifra: (songData.cifra ?? null) as any,
+            } as any)
+            .eq('id', songData.id);
+          updateError = error;
+        } catch (e) {
+          updateError = e;
+        }
 
-        if (error) throw error;
+        if (updateError) {
+          // Fallback: tenta atualizar sem cifra (caso a coluna não exista ainda)
+          const msg = String((updateError as any)?.message || updateError);
+          if (msg.toLowerCase().includes('column') && msg.toLowerCase().includes('cifra')) {
+            const { error } = await supabase
+              .from('songs')
+              .update({
+                title: songData.title,
+                artist: songData.artist,
+                notes: songData.notes as unknown as never,
+              })
+              .eq('id', songData.id);
+            if (error) throw error;
+          } else {
+            throw updateError;
+          }
+        }
+
         if (songData.cifra) {
           // Salvar localmente e também manter no state, para aparecer na hora no celular.
           try { await setSongCifra(songData.id, songData.cifra); } catch { /* ignore */ }
@@ -136,18 +183,48 @@ export default function Index() {
 
         toast({ title: 'Música atualizada!' });
       } else {
-        const { data, error } = await supabase
-          .from('songs')
-          .insert({
-            title: songData.title,
-            artist: songData.artist,
-            notes: songData.notes as unknown as never,
-            user_id: user?.id,
-          })
-          .select('id')
-          .single();
+        let insertData: any = null;
+        let insertError: any = null;
+        try {
+          const { data, error } = await supabase
+            .from('songs')
+            .insert({
+              title: songData.title,
+              artist: songData.artist,
+              notes: songData.notes as unknown as never,
+              user_id: user?.id,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              cifra: (songData.cifra ?? null) as any,
+            } as any)
+            .select('id')
+            .single();
+          insertData = data;
+          insertError = error;
+        } catch (e) {
+          insertError = e;
+        }
 
-        if (error) throw error;
+        if (insertError) {
+          const msg = String((insertError as any)?.message || insertError);
+          if (msg.toLowerCase().includes('column') && msg.toLowerCase().includes('cifra')) {
+            const { data, error } = await supabase
+              .from('songs')
+              .insert({
+                title: songData.title,
+                artist: songData.artist,
+                notes: songData.notes as unknown as never,
+                user_id: user?.id,
+              })
+              .select('id')
+              .single();
+            if (error) throw error;
+            insertData = data;
+          } else {
+            throw insertError;
+          }
+        }
+
+        const data = insertData;
         if (data?.id && songData.cifra) {
           try { await setSongCifra(data.id, songData.cifra); } catch { /* ignore */ }
         }

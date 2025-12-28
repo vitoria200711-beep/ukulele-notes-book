@@ -115,7 +115,11 @@ export async function mergeSongsWithCifra<T extends { id: string }>(
   const merged = await Promise.all(
     songs.map(async (s) => {
       const cifra = await getSongCifra(s.id);
-      return { ...s, cifra };
+      // Se não existir cifra local neste dispositivo, mantém a cifra que veio do Supabase (se existir).
+      // Isso é essencial para sincronizar PC <-> celular.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const remoteCifra = (s as any).cifra as string | undefined;
+      return { ...s, cifra: cifra ?? remoteCifra };
     })
   );
   return merged;
